@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Abertura ao Vivo</title>
+    <style>
+        :root {
+            --bg-color: #0b0e17;
+            --card-bg: #111625;
+            --border-color: #1e2640;
+            --text-color: #ffffff;
+            --text-muted: #6272a4;
+            --neon-blue: #00f0ff;
+            --neon-yellow: #fff500;
+            --neon-pink: #ff5555;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+        }
+
+        /* Painel Superior */
+        .calc-panel {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .panel-title {
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .btn-action {
+            background: #282a36;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.2s;
+        }
+
+        .btn-action:hover {
+            background: #44475a;
+        }
+
+        .asset-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .asset-name {
+            font-weight: bold;
+            font-size: 15px;
+            letter-spacing: 1px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            background: #07090e;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .btn-step {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-step:hover {
+            color: var(--text-color);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .asset-input {
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            text-align: center;
+            width: 70px;
+            font-size: 16px;
+            font-weight: bold;
+            outline: none;
+        }
+
+        /* Esconder as setinhas padrão do input de número */
+        .asset-input::-webkit-outer-spin-button,
+        .asset-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .input-suffix {
+            color: var(--text-muted);
+            padding-right: 10px;
+            font-size: 14px;
+        }
+
+        .formula-preview {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-top: 25px;
+            font-family: monospace;
+        }
+
+        .display-box {
+            background: linear-gradient(135deg, #131929 0%, #07090e 100%);
+            border: 1px solid #222b45;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.6);
+        }
+
+        .display-value {
+            font-size: 42px;
+            font-weight: 900;
+            color: var(--neon-yellow);
+            margin: 0;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(255, 245, 0, 0.3);
+        }
+
+        .display-status {
+            font-size: 13px;
+            letter-spacing: 2px;
+            color: var(--neon-yellow);
+            margin-top: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* Painéis Inferiores (Grid) */
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .bottom-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .strat-item {
+            margin-bottom: 15px;
+            font-size: 13px;
+            line-height: 1.4;
+            opacity: 0.4;
+            transition: 0.3s;
+        }
+
+        .strat-item.active {
+            opacity: 1;
+        }
+
+        .strat-header {
+            font-weight: bold;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+        }
+
+        .strat-blue { color: var(--neon-blue); }
+        .strat-red { color: var(--neon-pink); }
+        .strat-gray { color: #8be9fd; }
+
+        /* Tabela de Variação */
+        .var-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .var-table th {
+            text-align: left;
+            color: var(--text-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            padding-bottom: 10px;
+        }
+
+        .var-row {
+            opacity: 0.4;
+            transition: 0.3s;
+        }
+
+        .var-row.active {
+            opacity: 1;
+            font-weight: bold;
+            background: rgba(255,255,255,0.02);
+        }
+
+        .var-row td {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .text-right { text-align: right; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="calc-panel">
+        <div class="panel-header">
+            <div class="panel-title">📊 Calculadora Ao Vivo</div>
+            <div>
+                <button class="btn-action" onclick="randomizar()">Random</button>
+                <button class="btn-action" onclick="resetar()">Reset</button>
+            </div>
+        </div>
+
+        <div class="asset-row">
+            <div class="asset-name">VIX</div>
+            <div class="input-group">
+                <button class="btn-step" onclick="alterar('vix', -0.1)">-</button>
+                <input type="number" id="vix" class="asset-input" value="0.0" step="0.1" oninput="calcular()">
+                <span class="input-suffix">%</span>
+                <button class="btn-step" onclick="alterar('vix', 0.1)">+</button>
+            </div>
+        </div>
+
+        <div class="asset-row">
+            <div class="asset-name">FEF2!</div>
+            <div class="input-group">
+                <button class="btn-step" onclick="alterar('fef2', -0.1)">-</button>
+                <input type="number" id="fef2" class="asset-input" value="0.0" step="0.1" oninput="calcular()">
+                <span class="input-suffix">%</span>
+                <button class="btn-step" onclick="alterar('fef2', 0.1)">+</button>
+            </div>
+        </div>
+
+        <div class="asset-row">
+            <div class="asset-name">CL1!</div>
+            <div class="input-group">
+                <button class="btn-step" onclick="alterar('cl1', -0.1)">-</button>
+                <input type="number" id="cl1" class="asset-input" value="0.0" step="0.1" oninput="calcular()">
+                <span class="input-suffix">%</span>
+                <button class="btn-step" onclick="alterar('cl1', 0.1)">+</button>
+            </div>
+        </div>
+
+        <div class="formula-preview" id="formula-text">
+            (<span style="color: var(--neon-blue);">+0.00%</span>) + <span style="color: var(--neon-blue);">0.00%</span> + <span style="color: var(--neon-blue);">0.00%</span> = <span style="color: var(--neon-yellow);">+0.00%</span>
+        </div>
+
+        <div class="display-box">
+            <h1 class="display-value" id="total-display">+0.00%</h1>
+            <div class="display-status" id="status-display">NEUTRO - AGUARDAR</div>
+        </div>
+    </div>
+
+    <div class="bottom-grid">
+        
+        <div class="info-card">
+            <div class="card-title">DIREÇÃO E ESTRATÉGIA</div>
+            
+            <div class="strat-item" id="strat-pos">
+                <div class="strat-header strat-blue">↑ POSITIVO ➔ ABERTURA COMPRADORA</div>
+                <div style="color: var(--text-muted);">Buscar regiões de suporte abaixo da abertura.</div>
+            </div>
+
+            <div class="strat-item" id="strat-neg">
+                <div class="strat-header strat-red">↓ NEGATIVO ➔ ABERTURA VENDEDORA</div>
+                <div style="color: var(--text-muted);">Buscar regiões de resistência acima da abertura.</div>
+            </div>
+
+            <div class="strat-item active" id="strat-lat">
+                <div class="strat-header strat-gray">↔ LATERAL ➔ EXTREMIDADES</div>
+                <div style="color: var(--text-muted);">Compra no suporte, venda na resistência. Alvos curtos.</div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="card-title">TAMANHO DA ABERTURA</div>
+            <table class="var-table">
+                <thead>
+                    <tr>
+                        <th>VARIAÇÃO</th>
+                        <th class="text-right">ABERTURA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="var-row active" id="row-lateral">
+                        <td>&lt; 1,5%</td>
+                        <td class="text-right" style="color: var(--text-muted);">Lateral</td>
+                    </tr>
+                    <tr class="var-row" id="row-fraca">
+                        <td>1,5% - 2,5%</td>
+                        <td class="text-right" style="color: #50fa7b;">Fraca</td>
+                    </tr>
+                    <tr class="var-row" id="row-moderada">
+                        <td>2,5% - 4,5%</td>
+                        <td class="text-right" style="color: var(--neon-blue);">Moderada</td>
+                    </tr>
+                    <tr class="var-row" id="row-forte">
+                        <td>&gt; 4,5%</td>
+                        <td class="text-right" style="color: #ff79c6;">FORTE</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function alterar(id, valor) {
+        let input = document.getElementById(id);
+        let atual = parseFloat(input.value) || 0;
+        input.value = (atual + valor).toFixed(1);
+        calcular();
+    }
+
+    function resetar() {
+        document.getElementById('vix').value = "0.0";
+        document.getElementById('fef2').value = "0.0";
+        document.getElementById('cl1').value = "0.0";
+        calcular();
+    }
+
+    function randomizar() {
+        // Gera valores aleatórios entre -3% e +3% para testar o painel dinâmico
+        document.getElementById('vix').value = ((Math.random() * 6) - 3).toFixed(1);
+        document.getElementById('fef2').value = ((Math.random() * 6) - 3).toFixed(1);
+        document.getElementById('cl1').value = ((Math.random() * 6) - 3).toFixed(1);
+        calcular();
+    }
+
+    function calcular() {
+        let vix = parseFloat(document.getElementById('vix').value) || 0;
+        let fef2 = parseFloat(document.getElementById('fef2').value) || 0;
+        let cl1 = parseFloat(document.getElementById('cl1').value) || 0;
+
+        let total = vix + fef2 + cl1;
+        let absTotal = Math.abs(total);
+
+        // Atualiza a linha da fórmula
+        let formatVix = (vix >= 0 ? "+" : "") + vix.toFixed(2) + "%";
+        let formatFef2 = (fef2 >= 0 ? "+" : "") + fef2.toFixed(2) + "%";
+        let formatCl1 = (cl1 >= 0 ? "+" : "") + cl1.toFixed(2) + "%";
+        let formatTotal = (total >= 0 ? "+" : "") + total.toFixed(2) + "%";
+
+        document.getElementById('formula-text').innerHTML = 
+            `(<span style="color: ${vix >= 0 ? 'var(--neon-blue)' : 'var(--neon-pink)'}">${formatVix}</span>) + ` +
+            `<span style="color: ${fef2 >= 0 ? 'var(--neon-blue)' : 'var(--neon-pink)'}">${formatFef2}</span> + ` +
+            `<span style="color: ${cl1 >= 0 ? 'var(--neon-blue)' : 'var(--neon-pink)'}">${formatCl1}</span> = ` +
+            `<span style="color: var(--neon-yellow);">${formatTotal}</span>`;
+
+        // Display Central
+        document.getElementById('total-display').innerText = formatTotal;
+
+        // Resetar classes ativas das estratégias e linhas
+        document.getElementById('strat-pos').classList.remove('active');
+        document.getElementById('strat-neg').classList.remove('active');
+        document.getElementById('strat-lat').classList.remove('active');
+        
+        document.getElementById('row-lateral').classList.remove('active');
+        document.getElementById('row-fraca').classList.remove('active');
+        document.getElementById('row-moderada').classList.remove('active');
+        document.getElementById('row-forte').classList.remove('active');
+
+        // Lógica de Status e Estratégia
+        let statusText = "NEUTRO - AGUARDAR";
+        
+        if (total > 0) {
+            document.getElementById('strat-pos').classList.add('active');
+            statusText = "SINAL COMPRADOR";
+        } else if (total < 0) {
+            document.getElementById('strat-neg').classList.add('active');
+            statusText = "SINAL VENDEDOR";
+        } else {
+            document.getElementById('strat-lat').classList.add('active');
+        }
+
+        // Lógica de Tamanho de Abertura (Intensidade)
+        if (absTotal < 1.5) {
+            document.getElementById('row-lateral').classList.add('active');
+            if(total === 0) statusText = "NEUTRO - AGUARDAR";
+        } else if (absTotal <= 2.5) {
+            document.getElementById('row-fraca').classList.add('active');
+            statusText += " - FRACA";
+        } else if (absTotal <= 4.5) {
+            document.getElementById('row-moderada').classList.add('active');
+            statusText += " - MODERADA";
+        } else {
+            document.getElementById('row-forte').classList.add('active');
+            statusText += " - FORTE";
+        }
+
+        document.getElementById('status-display').innerText = statusText;
+    }
+</script>
+
+</body>
+</html>
